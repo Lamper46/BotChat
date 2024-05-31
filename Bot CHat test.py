@@ -188,7 +188,7 @@ def delete_command(command):
 def about(word):
     if word == "/about":
         print("I am a test to see if it is possible to make a Python chatbot without OpenAI.")
-        print("My Creator is Michael Meidan.")
+        print("My Creator is Lamper46.")
         print("I was started as a side project on April 22nd, 2024.")
         done = True
         return done
