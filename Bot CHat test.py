@@ -2,9 +2,11 @@ import time
 import random
 import winsound
 import datetime
-import requests
+import requests, json
+from bs4 import BeautifulSoup
+import lxml
 
-command_list = ["date", "numfact", "nameage", "define", "quote", "datatype", "multtable", "addtable", "time", "rand", "wiki", "delete", "about", "help", "learn", "remind", "mult", "div", "keyword", "sum", "sub", "repeat", "quit", "remove"]
+command_list = ["date", "search", "numfact", "nameage", "define", "quote", "datatype", "multtable", "addtable", "time", "rand", "wiki", "delete", "about", "help", "learn", "remind", "mult", "div", "keyword", "sum", "sub", "repeat", "quit", "remove"]
 
 def dad_joke(word):
     if "i'm " in word.lower() or "im " in word.lower():
@@ -13,6 +15,55 @@ def dad_joke(word):
         print(f"Hello, {word_list[amount]}, I'm BotChat!")
         done = True
         return done
+
+def search_google(word):
+    word.replace("/search ", "")
+    params = {
+        "q": word,  # Your query
+        "hl": "en",          # Language
+        "gl": "us",          # Country (e.g., UK -> United Kingdom)
+        "start": 0,          # Starting page (default is 0)
+        "num": 5          # Maximum number of results to return (optional)
+    }
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+    }
+
+    page_limit = 10  # Set the desired page limit
+    page_num = 0
+    data = []
+
+    while True:
+        page_num += 1
+        print(f"Page: {page_num}")
+        html = requests.get("https://www.google.com/search", params=params, headers=headers, timeout=30)
+        soup = BeautifulSoup(html.text, 'lxml')
+
+        for result in soup.select(".tF2Cxc"):
+            title = result.select_one(".DKV0Md").text
+            try:
+                snippet = result.select_one(".lEBKkf span").text
+            except:
+                snippet = None
+            links = result.select_one(".yuRUbf a")["href"]
+
+            data.append({
+                "title": title,
+                "snippet": snippet,
+                "links": links
+            })
+    
+        if page_num == page_limit:
+            break
+        
+        if soup.select_one(".d6cvqb a[id=pnnext]"):
+            params["start"] += 10
+        else:
+            break
+
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
 
 def get_number_fact(number):
     number = number.replace("/numfact ", "")
@@ -188,7 +239,7 @@ def delete_command(command):
 def about(word):
     if word == "/about":
         print("I am a test to see if it is possible to make a Python chatbot without OpenAI.")
-        print("My Creator is Lamper46.")
+        print("My Creator is Michael Meidan.")
         print("I was started as a side project on April 22nd, 2024.")
         done = True
         return done
@@ -406,6 +457,7 @@ def help(word):
 /keyword - tells you about a Python keyword
 /multtable - shows you a multiplication table
 /addtable - shows you an addition table
+/search - lets you search Google
 /quote - gives you a quote from Quotable
 /datatype - tells you about a Python data type
 /define - gives you the definition of a word from DictionaryAPI
@@ -523,6 +575,12 @@ Does: Removes command''')
 Syntax: /keyword {word}
 Does: tells you about the keyword word''')
 
+    elif word == "search":
+        print('''Lets you search on Google
+Syntax: /search {topic}
+Does: Gives you results for the search query "topic"
+Notes: Query does not currently work''')
+
     elif word == "quit":
         print("Lets you leave BotChat")
         
@@ -623,6 +681,9 @@ while(no_quit):
 
     elif "/repeat" in prompt:
         repeat(prompt)
+
+    elif "/search" in prompt:
+        search_google(prompt)
 
     elif prompt == "/time":
         print_time()
