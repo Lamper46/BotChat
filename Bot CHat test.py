@@ -5,8 +5,9 @@ import datetime
 import requests, json
 from bs4 import BeautifulSoup
 import lxml
+from autocorrect import Speller
 
-command_list = ["date", "search", "numfact", "nameage", "define", "quote", "datatype", "multtable", "addtable", "time", "rand", "wiki", "delete", "about", "help", "learn", "remind", "mult", "div", "keyword", "sum", "sub", "repeat", "quit", "remove"]
+command_list = ["date", "spellcheck", "search", "numfact", "nameage", "define", "quote", "datatype", "multtable", "addtable", "time", "rand", "wiki", "delete", "about", "help", "learn", "remind", "mult", "div", "keyword", "sum", "sub", "repeat", "quit", "remove"]
 
 def dad_joke(word):
     if "i'm " in word.lower() or "im " in word.lower():
@@ -15,6 +16,23 @@ def dad_joke(word):
         print(f"Hello, {word_list[amount]}, I'm BotChat!")
         done = True
         return done
+
+def spell_checker(sentence):
+    sentence = sentence.replace("/spellcheck ", "")
+    sentence = sentence.split(" ")
+    if len(sentence) > 10:
+        print("That sentence is too long. Choose a few words you think might be incorrect instead of all of those.")
+        done = True
+        return done
+    spell = Speller(lang='en')
+    for word in range(0, len(sentence)):
+        corrected_word = spell(sentence[word])
+        if corrected_word == sentence[word]:
+              print(f"{sentence[word]} is spelled correctly.")
+        else:
+            print(f"Original: {sentence[word]}")
+            print(f"Corrected: {corrected_word}")
+
 
 def search_google(word):
     word.replace("/search ", "")
@@ -443,6 +461,7 @@ def help(word):
 /mult - multiplies numbers
 /div - divides numbers
 /help - brings you to this screen
+/spellchecker - checks your spelling
 /learn - learns a command
 /remind - sets a reminder
 /wiki - shows you a wikipedia entry
@@ -508,6 +527,12 @@ DOes: Tells you a fact about number''')
 
     elif word == "about":
         print("Displays the about page")
+
+    elif word == "spellcheck":
+        print('''Checks your spelling.
+Syntax: /spellcheck {word1} {word3}, ect
+Does: Checks the spelling of {word1}, [word2}, ect
+Notes: Do not check more than 10 words at a time.''')
 
     elif word == "time":
         print("Displays current time in UTC")
@@ -675,6 +700,9 @@ while(no_quit):
         delete_command(prompt)
         write_file()
         read_file()
+
+    elif "/spellcheck" in prompt:
+        spell_checker(prompt)
 
     elif "/nameage" in prompt:
         name_age_guess(prompt)
